@@ -1,0 +1,25 @@
+# Ignore build folders
+build/
+bin/
+*.exe
+*.out
+*.o
+*.obj
+*.pdb
+
+# Ignore SFML libraries
+*.dll
+*.lib
+*.a
+
+# Ignore IDE files
+.vscode/
+*.code-workspace
+
+# Ignore OS junk files
+.DS_Store
+Thumbs.db
+
+# Ignore logs and temp
+*.log
+*.tmp
