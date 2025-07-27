@@ -25,6 +25,12 @@ void Player::setPosition(sf::Vector2f pos)
     shape.setPosition({pos});
 }
 
+void Player::resetPlayer(){
+    setOrigin();
+    shape.setPosition({WINDOW_W / 2, WINDOW_H / 2});
+    shape.setRotation(sf::degrees(0));
+} 
+
 void Player::newTexture(sf::Texture &t)
 {
     shape.setTexture(t, true);

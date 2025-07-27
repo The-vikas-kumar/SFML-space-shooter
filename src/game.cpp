@@ -17,7 +17,8 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Game::Game() : window(sf::VideoMode({WINDOW_W, WINDOW_H}), "SPACE SHOOTER"){
+Game::Game() : window(sf::VideoMode({WINDOW_W, WINDOW_H}), "SPACE SHOOTER")
+{
     window.setFramerateLimit(60);
     windowSize = window.getSize();
 
@@ -56,7 +57,7 @@ void Game::run()
     if (!laserBuffer.loadFromFile("assets/laserGunShot.wav"))
     {
         std::cout << "cant load gun shot sound";
-        //return -1;
+        // return -1;
     }
     sf::Sound lazerSound(laserBuffer);
 
@@ -65,7 +66,7 @@ void Game::run()
     if (!explosionBuffer.loadFromFile("assets/explosion.wav"))
     {
         std::cout << "cant load explosion sound";
-        //return -1;
+        // return -1;
     }
     sf::Sound explosionSound(explosionBuffer);
 
@@ -74,12 +75,12 @@ void Game::run()
     if (!backgroundMusic.openFromFile("assets/spaceMusic.wav"))
     {
         std::cout << "cant load background music";
-        //return -1;
+        // return -1;
     }
     backgroundMusic.setLooping(true);
     backgroundMusic.play();
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // add buttons
     // start button
@@ -124,7 +125,7 @@ void Game::run()
     Button homeButton;
     homeButton.aboutButton(TextureManager::getTexture("homeButton"), homeButtonPos, homeButtonSize);
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // for highscore
     std::ifstream inputFile("assets/highscore.txt");
@@ -139,13 +140,13 @@ void Game::run()
     if (!font.openFromFile("assets/Dinofans.ttf"))
     {
         std::cout << "font did not load from file";
-        //return -1;
+        // return -1;
     }
     sf::Font gameFont;
     if (!gameFont.openFromFile("assets/game_over.ttf"))
     {
         std::cout << "font did not load from file";
-        //return -1;
+        // return -1;
     }
 
     // text
@@ -167,7 +168,7 @@ void Game::run()
     highscoreText.setFillColor(sf::Color::White);
     highscoreText.setPosition(sf::Vector2f(WINDOW_W - 450, 20));
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // main game background
     sf::Sprite mainBackground(TextureManager::getTexture("mainBackground"));
@@ -190,7 +191,7 @@ void Game::run()
     float scaleYforUi = (float)windowSize.y / uiBackT.y;
     uiBackground.setScale(sf::Vector2f(scaleXforUi, scaleYforUi));
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // delta clock
     sf::Clock deltaClock;
@@ -207,7 +208,7 @@ void Game::run()
     sf::Clock astroidClock;
     float astroidCooldown = 2.0f;
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // create player
     Player player(TextureManager::getTexture("player1"));
@@ -216,10 +217,10 @@ void Game::run()
     // create bullet
     std::vector<Bullet> bullet;
 
-    // create enemy
+    // create astroids
     std::vector<Astroid> astroid;
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (window.isOpen())
     {
 
@@ -305,6 +306,17 @@ void Game::run()
                     {
                         if (restartButton.getGlobalBounds(mousePos))
                         {
+                            score = 0;
+                            milestone = 0;
+                            astroidCooldown = 2.0f;
+                            bullet.clear();
+                            astroid.clear();
+                            deltaClock.restart();
+                            fireClock.restart();
+                            astroidClock.restart();
+                            backgroundMusic.play();
+                            player.setPosition({WINDOW_W / 2, WINDOW_H / 2});
+                            //player.setRotation(0.f);
                             currentState = GameState::Playing;
                         }
                         if (homeButton.getGlobalBounds(mousePos))
@@ -409,11 +421,11 @@ void Game::run()
                 backButton.setColor(sf::Color::Green);
             }
 
-            Player  p1(TextureManager::getTexture("player1")), 
-                    p2(TextureManager::getTexture("player2")), 
-                    p3(TextureManager::getTexture("player3")), 
-                    p4(TextureManager::getTexture("player4")), 
-                    p5(TextureManager::getTexture("player5"));
+            Player p1(TextureManager::getTexture("player1")),
+                p2(TextureManager::getTexture("player2")),
+                p3(TextureManager::getTexture("player3")),
+                p4(TextureManager::getTexture("player4")),
+                p5(TextureManager::getTexture("player5"));
 
             p1.setPosition({WINDOW_W / 4, WINDOW_H / 4});
 
@@ -575,7 +587,7 @@ void Game::run()
                                { return b.isOffScrean(); }),
                 bullet.end());
 
-            // enemy logic
+            // astroid logic
             if (astroidClock.getElapsedTime().asSeconds() >= astroidCooldown)
             {
                 Astroid a;
@@ -585,7 +597,7 @@ void Game::run()
                 astroidClock.restart();
             }
 
-            // Erase enemies that collided with player or any bullet
+            // Erase astroids that collided with player or any bullet
             astroid.erase(
                 std::remove_if(astroid.begin(), astroid.end(), [&](const Astroid &a)
                                {
@@ -628,7 +640,7 @@ void Game::run()
             // draw player
             player.draw(window);
 
-            // draw enemy
+            // draw astroid
             for (Astroid &a : astroid)
             {
                 a.move(player.playerPos(), dt);

@@ -1,6 +1,7 @@
 #include "map.h"
 
 #include <SFML/Graphics.hpp>
+#include <iostream>
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -28,8 +29,8 @@ void Map::generateChunk(int cx, int cy){
     for(int i = 0; i < numStar; i++){
         SpaceObject s(starTexture); 
         s.position = {
-            cx * 1000 + std::rand() % chunkSize,
-            cy * 1000 + std::rand() % chunkSize
+            static_cast<float>(cx * 1000 + std::rand() % chunkSize),
+            static_cast<float>(cy * 1000 + std::rand() % chunkSize)
         };
         s.sprite.setPosition(s.position);
         objs.push_back(s);
@@ -38,8 +39,8 @@ void Map::generateChunk(int cx, int cy){
     if(std::rand() % 10 == 0){
         SpaceObject p(planetTexture);
         p.position = {
-            cx * 1000 + std::rand() % chunkSize,
-            cy * 1000 + std::rand() % chunkSize
+            static_cast<float>(cx * 1000 + std::rand() % chunkSize),
+            static_cast<float>(cy * 1000 + std::rand() % chunkSize)
         };
         p.sprite.setPosition(p.position);
         objs.push_back(p);
@@ -50,8 +51,12 @@ void Map::generateChunk(int cx, int cy){
 Map::Map(){}
 
 void Map::loadTexture(const std::string& starPath, const std::string& planetPath){ 
-    starTexture.loadFromFile(starPath);
-    planetTexture.loadFromFile(planetPath);
+    if(!starTexture.loadFromFile(starPath)){
+        std::cerr << "Error: Could not load " << starPath << "\n";
+    }
+    if(!planetTexture.loadFromFile(planetPath)){
+        std::cerr << "Error: Could not load " << planetPath << "\n";
+    }
 }
 
 void Map::update(sf::Vector2f& cameraPos){

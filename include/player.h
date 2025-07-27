@@ -8,6 +8,7 @@ class Player{
     public:
     Player(const sf::Texture &t);
     void setPosition(sf::Vector2f pos);
+    void resetPlayer();
     void newTexture(sf::Texture &t);
     void movePlayer(float dt);
     sf::Vector2f getPlayerDirection() const;
