@@ -12,29 +12,49 @@ void Player::setOrigin()
     auto lb = shape.getLocalBounds(); // local (untransformed) width/height
     shape.setOrigin({lb.position.x + lb.size.x / 2,
                      lb.position.y + lb.size.y / 2});
+
+    auto hlb = hitBox.getLocalBounds(); // local (untransformed) width/height
+    hitBox.setOrigin({hlb.position.x + hlb.size.x / 2,
+                     hlb.position.y + hlb.size.y / 2});
 }
 
-Player::Player(const sf::Texture &t) : shape(t)
+Player::Player(const sf::Texture &t) : shape(t), speed(300.f), playerSize(64.f)
 {
     shape.setScale({playerSize / static_cast<float>(t.getSize().x), playerSize / static_cast<float>(t.getSize().y)});
+
+    // hitBox.setFillColor(sf::Color::Green);
+    sf::Vector2f pSize = shape.getGlobalBounds().size;
+    hitBox.setSize({pSize.x - 15, pSize.y - 15});
+
     setOrigin();
 }
 
-void Player::setPosition(sf::Vector2f pos)
+void Player::setPosition(const sf::Vector2f pos)
 {
     shape.setPosition({pos});
+    hitBox.setPosition({pos});
 }
 
 void Player::resetPlayer(){
     setOrigin();
     shape.setPosition({WINDOW_W / 2, WINDOW_H / 2});
     shape.setRotation(sf::degrees(0));
+    hitBox.setPosition({WINDOW_W / 2, WINDOW_H / 2});
 } 
 
-void Player::newTexture(sf::Texture &t)
+void Player::setSize(float size){
+    const sf::Texture& t = shape.getTexture();
+    shape.setScale({size/ static_cast<float>(t.getSize().x), size / static_cast<float>(t.getSize().y)});
+}
+
+void Player::newTexture(const sf::Texture &t)
 {
     shape.setTexture(t, true);
     shape.setScale({playerSize / static_cast<float>(t.getSize().x), playerSize / static_cast<float>(t.getSize().y)});
+
+    sf::Vector2f pSize = shape.getGlobalBounds().size;
+    hitBox.setSize({pSize.x - 15, pSize.y - 15});
+
     setOrigin();
 }
 
@@ -70,6 +90,8 @@ void Player::movePlayer(float dt)
     }
 
     shape.move({direction * speed * dt});
+    auto pos = shape.getPosition();
+    hitBox.setPosition({pos});
 }
 
 sf::Vector2f Player::getPlayerDirection() const
@@ -86,7 +108,7 @@ sf::Vector2f Player::playerPos() const
 
 sf::FloatRect Player::playerBound() const
 {
-    return shape.getGlobalBounds();
+    return hitBox.getGlobalBounds();
 }
 
 void Player::keepPlayerInside()
@@ -94,8 +116,8 @@ void Player::keepPlayerInside()
     sf::Vector2f pos = shape.getPosition();
     sf::Vector2f size = shape.getGlobalBounds().size;
 
-    float clampedX = std::max(0.0f, std::min(pos.x, static_cast<float>(WINDOW_W) - size.x / 2));
-    float clampedY = std::max(0.0f, std::min(pos.y, static_cast<float>(WINDOW_H) - size.y / 2));
+    float clampedX = std::max(size.x / 2, std::min(pos.x, static_cast<float>(WINDOW_W) - size.x / 2));
+    float clampedY = std::max(size.y / 2, std::min(pos.y, static_cast<float>(WINDOW_H) - size.y / 2));
 
     shape.setPosition(sf::Vector2f(clampedX, clampedY));
 }
@@ -103,4 +125,5 @@ void Player::keepPlayerInside()
 void Player::draw(sf::RenderWindow &window)
 {
     window.draw(shape);
+    // window.draw(hitBox);
 }

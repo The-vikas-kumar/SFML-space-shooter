@@ -5,11 +5,12 @@
 #include <cmath>
 
 class Player{
-    public:
+public:
     Player(const sf::Texture &t);
-    void setPosition(sf::Vector2f pos);
+    void setPosition(const sf::Vector2f pos);
+    void setSize(float size);
     void resetPlayer();
-    void newTexture(sf::Texture &t);
+    void newTexture(const sf::Texture &t);
     void movePlayer(float dt);
     sf::Vector2f getPlayerDirection() const;
     sf::Vector2f playerPos() const;
@@ -17,12 +18,12 @@ class Player{
     void keepPlayerInside();
     void draw(sf::RenderWindow &window);
 
-    private:
+private:
     void setOrigin();
 
-    private:
-    sf::Texture texture;
+private:
+    sf::RectangleShape hitBox;
     sf::Sprite shape;
-    float speed = 300.0f;
-    float playerSize = 64.f;
+    float speed;
+    float playerSize;
 };

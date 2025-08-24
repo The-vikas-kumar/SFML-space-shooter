@@ -1,3 +1,6 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// this file is not needed for now becouse i havent added this feature in the game yet and might not be added any time soon.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
 #include <SFML/Graphics.hpp>
@@ -18,8 +21,8 @@ class Map
 {
 public:
     Map();
-    void loadTexture(const std::string &startPath, const std::string &planetPath);
-    void update(sf::Vector2f &cameraPos);
+    void loadTexture(const sf::Texture &starTexture, const sf::Texture &planetTexture);
+    void update(const sf::Vector2f &cameraPos);
     void draw(sf::RenderWindow &window);
 
 private:

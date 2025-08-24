@@ -34,15 +34,14 @@ Game::Game() : window(sf::VideoMode({WINDOW_W, WINDOW_H}), "SPACE SHOOTER")
     TextureManager::loadTexture("player4", "assets/ship3.png");
     TextureManager::loadTexture("player5", "assets/ship4.png");
     TextureManager::loadTexture("asteroid", "assets/asteroid.png");
-    TextureManager::loadTexture("mainBackground", "assets/spaceBackground.jpg");
-    TextureManager::loadTexture("uiBackground", "assets/uiBackground.jpg");
-    TextureManager::loadTexture("startBackground", "assets/startBackground.png");
+    TextureManager::loadTexture("mainBackground", "assets/gameBackground.jpg");
+    TextureManager::loadTexture("uiBackground", "assets/uiBackground.png");
     TextureManager::loadTexture("startButton", "assets/startButton.png");
     TextureManager::loadTexture("settingsButton", "assets/settingsIcon.png");
     TextureManager::loadTexture("restartButton", "assets/restartButton.png");
     TextureManager::loadTexture("changeSkinButton", "assets/changeSkinButton.png");
     TextureManager::loadTexture("optionsButton", "assets/optionsButton.png");
-    TextureManager::loadTexture("backButton", "assets/backIcon.png");
+    TextureManager::loadTexture("backButton", "assets/backButton.png");
     TextureManager::loadTexture("homeButton", "assets/homeIcon.png");
 }
 
@@ -85,10 +84,10 @@ void Game::run()
     // add buttons
     // start button
     sf::Vector2f startButtonPos = {WINDOW_W / 2 - 100, WINDOW_H / 2 - 100};
-    sf::Vector2f startButtonSize = {200, 100};
+    sf::Vector2f startButtonSize = {270, 100};
     Button startButton;
     startButton.aboutButton(TextureManager::getTexture("startButton"), startButtonPos, startButtonSize);
-
+ 
     // back button
     sf::Vector2f backButtonPos = {WINDOW_W - 50, 0};
     sf::Vector2f backButtonSize = {50, 50};
@@ -102,20 +101,20 @@ void Game::run()
     settingsButton.aboutButton(TextureManager::getTexture("settingsButton"), settingsButtonPos, settingsButtonSize);
 
     // change skin button
-    sf::Vector2f skinButtonPos = {WINDOW_W / 2 - 100, WINDOW_H / 2};
-    sf::Vector2f skinButtonSize = {200, 100};
+    sf::Vector2f skinButtonPos = {WINDOW_W / 2 - 100, WINDOW_H / 2 + 50};
+    sf::Vector2f skinButtonSize = {270, 100};
     Button skinButton;
     skinButton.aboutButton(TextureManager::getTexture("changeSkinButton"), skinButtonPos, skinButtonSize);
 
     // options button
-    sf::Vector2f optionsButtonPos = {WINDOW_W / 2 - 100, WINDOW_H / 2 + 150};
-    sf::Vector2f optionsButtonSize = {200, 100};
+    sf::Vector2f optionsButtonPos = {WINDOW_W / 2 - 100, WINDOW_H / 2 - 150};
+    sf::Vector2f optionsButtonSize = {270, 100};
     Button optionsButton;
     optionsButton.aboutButton(TextureManager::getTexture("optionsButton"), optionsButtonPos, optionsButtonSize);
 
     // restart button
     sf::Vector2f restartButtonPos = {WINDOW_W / 2 - 100, WINDOW_H / 2 + 150};
-    sf::Vector2f restartButtonSize = {200, 100};
+    sf::Vector2f restartButtonSize = {270, 100};
     Button restartButton;
     restartButton.aboutButton(TextureManager::getTexture("restartButton"), restartButtonPos, restartButtonSize);
 
@@ -168,37 +167,40 @@ void Game::run()
     highscoreText.setFillColor(sf::Color::White);
     highscoreText.setPosition(sf::Vector2f(WINDOW_W - 450, 20));
 
+    // control text
+    sf::Text controlText(font);
+    controlText.setCharacterSize(60);
+    controlText.setFillColor(sf::Color::Green);
+    controlText.setPosition(sf::Vector2f(WINDOW_W / 2 - 300, WINDOW_H / 2 - 100));
+    controlText.setString("PRESS (W,A,S,D) TO MOVE\n\n" 
+                          " PRESS SPACE TO SHOOT");
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // main game background
     sf::Sprite mainBackground(TextureManager::getTexture("mainBackground"));
-    sf::Vector2u mainBackT = TextureManager::getTexture("mainBackground").getSize();
-    float scaleXforMain = (float)windowSize.x / mainBackT.x;
-    float scaleYforMain = (float)windowSize.y / mainBackT.y;
+    sf::Vector2u mainBackTSize = TextureManager::getTexture("mainBackground").getSize();
+    float scaleYforMain = (float)windowSize.y / mainBackTSize.y;
+    float scaleXforMain = scaleYforMain;
     mainBackground.setScale(sf::Vector2f(scaleXforMain, scaleYforMain));
 
-    // start screen background
-    sf::Sprite startBackground(TextureManager::getTexture("startBackground"));
-    sf::Vector2u startBackT = TextureManager::getTexture("startBackground").getSize();
-    float scaleXforStart = (float)windowSize.x / startBackT.x;
-    float scaleYforStart = (float)windowSize.y / startBackT.y;
-    startBackground.setScale(sf::Vector2f(scaleXforStart, scaleYforStart));
+    int mainScrollX = 0; // for scroll effect
+    TextureManager::getTexture("mainBackground").setRepeated(true);
 
     // ui background
     sf::Sprite uiBackground(TextureManager::getTexture("uiBackground"));
-    sf::Vector2u uiBackT = TextureManager::getTexture("uiBackground").getSize();
-    float scaleXforUi = (float)windowSize.x / uiBackT.x;
-    float scaleYforUi = (float)windowSize.y / uiBackT.y;
+    sf::Vector2u uiBackTSize = TextureManager::getTexture("uiBackground").getSize();
+    float scaleYforUi = (float)windowSize.y / uiBackTSize.y;
+    float scaleXforUi = scaleYforUi;
     uiBackground.setScale(sf::Vector2f(scaleXforUi, scaleYforUi));
+
+    int uiScrollX = 0; // for scroll effect
+    bool uiMovingRight = true;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // delta clock
     sf::Clock deltaClock;
-
-    // button clock
-    sf::Clock buttonClock;
-    float buttonCooldown = 0.5;
 
     // bullet cooldown timer
     sf::Clock fireClock;
@@ -213,6 +215,12 @@ void Game::run()
     // create player
     Player player(TextureManager::getTexture("player1"));
     player.setPosition(sf::Vector2f(WINDOW_W / 2, WINDOW_H / 2));
+
+    Player  p1(TextureManager::getTexture("player1")),
+            p2(TextureManager::getTexture("player2")),
+            p3(TextureManager::getTexture("player3")),
+            p4(TextureManager::getTexture("player4")),
+            p5(TextureManager::getTexture("player5"));
 
     // create bullet
     std::vector<Bullet> bullet;
@@ -246,6 +254,11 @@ void Game::run()
                         {
                             currentState = GameState::Playing;
                             astroidClock.restart();
+                            fireClock.restart();
+                            deltaClock.restart();
+                            backgroundMusic.play();
+                            player.resetPlayer();
+                            score = 0;
                         }
                         if (settingsButton.getGlobalBounds(mousePos))
                         {
@@ -298,6 +311,12 @@ void Game::run()
                         if (homeButton.getGlobalBounds(mousePos))
                         {
                             currentState = GameState::StartMenu;
+                            astroidClock.restart();
+                            fireClock.restart();
+                            deltaClock.restart();
+                            backgroundMusic.stop();
+                            astroid.clear();
+                            bullet.clear();
                         }
 
                         break;
@@ -315,12 +334,21 @@ void Game::run()
                             fireClock.restart();
                             astroidClock.restart();
                             backgroundMusic.play();
-                            player.setPosition({WINDOW_W / 2, WINDOW_H / 2});
-                            //player.setRotation(0.f);
+                            player.resetPlayer();
                             currentState = GameState::Playing;
                         }
                         if (homeButton.getGlobalBounds(mousePos))
                         {
+                            score = 0;
+                            milestone = 0;
+                            astroidCooldown = 2.0f;
+                            bullet.clear();
+                            astroid.clear();
+                            deltaClock.restart();
+                            fireClock.restart();
+                            astroidClock.restart();
+                            backgroundMusic.play();
+                            player.resetPlayer();
                             currentState = GameState::StartMenu;
                         }
 
@@ -343,16 +371,32 @@ void Game::run()
             startButton.setColor(sf::Color::White);
             if (startButton.getGlobalBounds(mousePos))
             {
-                startButton.setColor(sf::Color::Green);
+                startButton.setColor(sf::Color(255, 255, 255, 128));
             }
             settingsButton.setColor(sf::Color::White);
             if (settingsButton.getGlobalBounds(mousePos))
             {
-                settingsButton.setColor(sf::Color::Green);
+                settingsButton.setColor(sf::Color(255, 255, 255, 128));
             }
 
+            if(uiMovingRight){
+                uiScrollX += 2;
+                if(uiScrollX >= uiBackTSize.x - (int)(WINDOW_W / scaleXforUi)){
+                    uiMovingRight = false;
+                }
+            }
+            else if(!uiMovingRight){
+                uiScrollX -= 2;
+                if(uiScrollX <= 0){
+                    uiMovingRight = true;
+                }
+            }
+
+            uiBackground.setTextureRect(sf::IntRect({uiScrollX, 0}, {(int)(WINDOW_W / scaleXforUi), (int)(WINDOW_H / scaleYforUi)}));
+
+
             window.clear();
-            window.draw(startBackground);
+            window.draw(uiBackground);
             startButton.draw(window);
             settingsButton.draw(window);
             window.display();
@@ -367,18 +411,33 @@ void Game::run()
             backButton.setColor(sf::Color::White);
             if (backButton.getGlobalBounds(mousePos))
             {
-                backButton.setColor(sf::Color::Green);
+                backButton.setColor(sf::Color(255, 255, 255, 128));
             }
             skinButton.setColor(sf::Color::White);
             if (skinButton.getGlobalBounds(mousePos))
             {
-                skinButton.setColor(sf::Color::Green);
+                skinButton.setColor(sf::Color(255, 255, 255, 128));
             }
             optionsButton.setColor(sf::Color::White);
             if (optionsButton.getGlobalBounds(mousePos))
             {
-                optionsButton.setColor(sf::Color::Green);
+                optionsButton.setColor(sf::Color(255, 255, 255, 128));
             }
+
+            if(uiMovingRight){
+                uiScrollX += 2;
+                if(uiScrollX >= uiBackTSize.x - (int)(WINDOW_W / scaleXforUi)){
+                    uiMovingRight = false;
+                }
+            }
+            else if(!uiMovingRight){
+                uiScrollX -= 2;
+                if(uiScrollX <= 0){
+                    uiMovingRight = true;
+                }
+            }
+
+            uiBackground.setTextureRect(sf::IntRect({uiScrollX, 0}, {(int)(WINDOW_W / scaleXforUi), (int)(WINDOW_H / scaleYforUi)}));
 
             window.clear();
             window.draw(uiBackground);
@@ -399,11 +458,27 @@ void Game::run()
             backButton.setColor(sf::Color::White);
             if (backButton.getGlobalBounds(mousePos))
             {
-                backButton.setColor(sf::Color::Green);
+                backButton.setColor(sf::Color(255, 255, 255, 128));
             }
+
+            if(uiMovingRight){
+                uiScrollX += 2;
+                if(uiScrollX >= uiBackTSize.x - (int)(WINDOW_W / scaleXforUi)){
+                    uiMovingRight = false;
+                }
+            }
+            else if(!uiMovingRight){
+                uiScrollX -= 2;
+                if(uiScrollX <= 0){
+                    uiMovingRight = true;
+                }
+            }
+
+            uiBackground.setTextureRect(sf::IntRect({uiScrollX, 0}, {(int)(WINDOW_W / scaleXforUi), (int)(WINDOW_H / scaleYforUi)}));
 
             window.clear();
             window.draw(uiBackground);
+            window.draw(controlText);
             backButton.draw(window);
             window.display();
             break;
@@ -418,21 +493,15 @@ void Game::run()
             backButton.setColor(sf::Color::White);
             if (backButton.getGlobalBounds(mousePos))
             {
-                backButton.setColor(sf::Color::Green);
+                backButton.setColor(sf::Color(255, 255, 255, 128));
             }
 
-            Player p1(TextureManager::getTexture("player1")),
-                p2(TextureManager::getTexture("player2")),
-                p3(TextureManager::getTexture("player3")),
-                p4(TextureManager::getTexture("player4")),
-                p5(TextureManager::getTexture("player5"));
-
-            p1.setPosition({WINDOW_W / 4, WINDOW_H / 4});
-
             // first ship
+            p1.setPosition({WINDOW_W / 4, WINDOW_H / 4});
+            p1.setSize(64.f);
             if (p1.playerBound().contains(mousePos))
             {
-
+                p1.setSize(100.f);
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
                 {
                     player.newTexture(TextureManager::getTexture("player1"));
@@ -441,10 +510,11 @@ void Game::run()
             }
 
             // second ship
-            p2.setPosition({WINDOW_W / 1.5, WINDOW_H / 1.5});
-
+            p2.setPosition({(WINDOW_W / 2) + (WINDOW_W / 4), WINDOW_H / 4});
+            p2.setSize(64.f);
             if (p2.playerBound().contains(mousePos))
             {
+                p2.setSize(100.f);
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
                 {
                     player.newTexture(TextureManager::getTexture("player2"));
@@ -454,9 +524,10 @@ void Game::run()
 
             // third ship
             p3.setPosition({WINDOW_W / 2, WINDOW_H / 4});
-
+            p3.setSize(64.f);
             if (p3.playerBound().contains(mousePos))
             {
+                p3.setSize(100.f);
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
                 {
                     player.newTexture(TextureManager::getTexture("player3"));
@@ -466,9 +537,10 @@ void Game::run()
 
             // forth ship
             p4.setPosition({WINDOW_W / 4, WINDOW_H / 2});
-
+            p4.setSize(64.f);
             if (p4.playerBound().contains(mousePos))
             {
+                p4.setSize(100.f);
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
                 {
                     player.newTexture(TextureManager::getTexture("player4"));
@@ -478,15 +550,31 @@ void Game::run()
 
             // fifth ship
             p5.setPosition({WINDOW_W / 2, WINDOW_H / 2});
-
+            p5.setSize(64.f);
             if (p5.playerBound().contains(mousePos))
             {
+                p5.setSize(100.f);
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
                 {
                     player.newTexture(TextureManager::getTexture("player5"));
                     player.setPosition({WINDOW_W / 2, WINDOW_H / 2});
                 }
             }
+
+            if(uiMovingRight){
+                uiScrollX += 2;
+                if(uiScrollX >= uiBackTSize.x - (int)(WINDOW_W / scaleXforUi)){
+                    uiMovingRight = false;
+                }
+            }
+            else if(!uiMovingRight){
+                uiScrollX -= 2;
+                if(uiScrollX <= 0){
+                    uiMovingRight = true;
+                }
+            }
+
+            uiBackground.setTextureRect(sf::IntRect({uiScrollX, 0}, {(int)(WINDOW_W / scaleXforUi), (int)(WINDOW_H / scaleYforUi)}));
 
             window.clear();
             window.draw(uiBackground);
@@ -528,12 +616,28 @@ void Game::run()
                     outputFile.close();
                 }
             }
+
+            if(uiMovingRight){
+                uiScrollX += 2;
+                if(uiScrollX >= uiBackTSize.x - (int)(WINDOW_W / scaleXforUi)){
+                    uiMovingRight = false;
+                }
+            }
+            else if(!uiMovingRight){
+                uiScrollX -= 2;
+                if(uiScrollX <= 0){
+                    uiMovingRight = true;
+                }
+            }
+            uiBackground.setTextureRect(sf::IntRect({uiScrollX, 0}, {(int)(WINDOW_W / scaleXforUi), (int)(WINDOW_H / scaleYforUi)}));
+
             backgroundMusic.stop();
             gameOverText.setString(
                 "            GAME OVER!\n"
                 "                SCORE : " +
                 std::to_string(score) +
                 "\n          HIGHSCORE : " + std::to_string(highScore));
+
             window.clear();
             window.draw(uiBackground);
             restartButton.draw(window);
@@ -547,6 +651,8 @@ void Game::run()
         // MAIN GAME PAGE
         case GameState::Playing:
         {
+            float dt = deltaClock.restart().asSeconds();
+            
             sf::Vector2i mousePixel = sf::Mouse::getPosition(window);
             sf::Vector2f mousePos = window.mapPixelToCoords(mousePixel);
 
@@ -562,7 +668,11 @@ void Game::run()
                 milestone += 5;
             }
 
-            float dt = deltaClock.restart().asSeconds();
+            mainScrollX += 2;
+            if(mainScrollX >= mainBackTSize.x){
+                mainScrollX = 0;
+            }
+            mainBackground.setTextureRect(sf::IntRect({mainScrollX, 0}, {(int)(WINDOW_W / scaleXforMain), (int)(WINDOW_H / scaleYforMain)}));
 
             player.movePlayer(dt);
 
@@ -584,15 +694,15 @@ void Game::run()
             // erase bullet
             bullet.erase(
                 std::remove_if(bullet.begin(), bullet.end(), [](const Bullet &b)
-                               { return b.isOffScrean(); }),
+                               { return b.forDeletingBullet(); }),
                 bullet.end());
 
             // astroid logic
             if (astroidClock.getElapsedTime().asSeconds() >= astroidCooldown)
             {
                 Astroid a;
-                a.aboutEnemy(TextureManager::getTexture("asteroid"));
-                a.enemyPosition();
+                a.aboutAsteroid(TextureManager::getTexture("asteroid"));
+                a.spawnAsteroid(player.playerPos());
                 astroid.emplace_back(a);
                 astroidClock.restart();
             }
@@ -602,7 +712,7 @@ void Game::run()
                 std::remove_if(astroid.begin(), astroid.end(), [&](const Astroid &a)
                                {
                 // Check if enemy hits player
-                if(a.forDeletingEnemy(player.playerBound())){
+                if(a.forDeletingAsteroid(player.playerBound())){
                     currentState = GameState::GameOver;
                     explosionSound.play();
                     return true;
@@ -610,7 +720,7 @@ void Game::run()
 
                 // Check if enemy hits any bullet
                 for (auto it = bullet.begin(); it != bullet.end(); ++it) {
-                    if (a.forDeletingEnemy(it->bulletBond())) {
+                    if (a.forDeletingAsteroid(it->bulletBond())) {
                         bullet.erase(it); // also remove the bullet
                         score += 1;
                         return true;
@@ -626,9 +736,6 @@ void Game::run()
 
             // draw background first
             window.draw(mainBackground);
-
-            // draw home button
-            homeButton.draw(window);
 
             // draw bullet
             for (Bullet &b : bullet)
@@ -646,6 +753,9 @@ void Game::run()
                 a.move(player.playerPos(), dt);
                 a.draw(window);
             }
+
+            // draw home button
+            homeButton.draw(window);
 
             // draw score and highscore
             window.draw(scoreText);
