@@ -1,30 +1,54 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
+
 project(SpaceShooter LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Where SFML is located in your repo/workspace
-set(SFML_ROOT "${CMAKE_SOURCE_DIR}/sfml")
+# -------------------------------
+# Paths (workspace-based)
+# -------------------------------
+set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
 
-# Output folder
-set(BUILD_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/build")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${BUILD_OUTPUT_DIR}")
+set(SRC_DIR ${PROJECT_ROOT}/src)
+set(INCLUDE_DIR ${PROJECT_ROOT}/include)
+set(ASSETS_DIR ${PROJECT_ROOT}/assets)
 
-# Compiler flags for static SFML and debug/release
-add_compile_definitions(SFML_STATIC)        # equivalent to -DSFML_STATIC
+set(SFML_ROOT ${PROJECT_ROOT}/external/sfml)
+set(SFML_INCLUDE_DIR ${SFML_ROOT}/include)
+set(SFML_LIB_DIR ${SFML_ROOT}/lib)
 
-# Source files
-file(GLOB_RECURSE SRC_FILES "${CMAKE_SOURCE_DIR}/src/*.cpp" "${CMAKE_SOURCE_DIR}/src/*.cxx")
-add_executable(game ${SRC_FILES})
+set(SFML_STATIC_LIBRARIES TRUE)
+add_definitions(-DSFML_STATIC)
 
-# Include and lib directories
-target_include_directories(game PRIVATE "${CMAKE_SOURCE_DIR}/include" "${SFML_ROOT}/include")
-link_directories("${SFML_ROOT}/lib")
+# -------------------------------
+# Collect source files
+# -------------------------------
+file(GLOB_RECURSE SOURCES
+    ${SRC_DIR}/*.cpp
+)
 
-# Link libraries - IMPORTANT: module libs come first, deps after.
-# Adjust names if your libs include -d suffix for debug builds.
-target_link_libraries(game PRIVATE
+# -------------------------------
+# Create executable
+# -------------------------------
+add_executable(SpaceShooter ${SOURCES})
+
+# -------------------------------
+# Include directories
+# -------------------------------
+target_include_directories(SpaceShooter PRIVATE
+    ${INCLUDE_DIR}
+    ${SFML_INCLUDE_DIR}
+)
+
+# -------------------------------
+# Link SFML libraries
+# -------------------------------
+target_link_directories(SpaceShooter PRIVATE
+    ${SFML_LIB_DIR}
+)
+
+target_link_libraries(SpaceShooter
     sfml-graphics-s
     sfml-window-s
     sfml-audio-s
@@ -42,22 +66,4 @@ target_link_libraries(game PRIVATE
     vorbisfile
     vorbis
     ogg
-    openal32
 )
-
-# Post-build: copy DLLs from sfml/bin into build folder (if any)
-if(EXISTS "${SFML_ROOT}/bin")
-    file(GLOB SFML_DLLS "${SFML_ROOT}/bin/*.dll")
-    foreach(_dll ${SFML_DLLS})
-        add_custom_command(TARGET game POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${_dll}" "$<TARGET_FILE_DIR:game>"
-        )
-    endforeach()
-endif()
-
-# Optional: set different libraries for Debug if you have -s-d variants
-# Example:
-# if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-#   target_link_libraries(game PRIVATE sfml-graphics-s-d ...)
-# endif()
