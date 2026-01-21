@@ -67,3 +67,7 @@ target_link_libraries(SpaceShooter
     vorbis
     ogg
 )
+
+file(COPY ${CMAKE_SOURCE_DIR}/assets
+    DESTINATION ${CMAKE_BINARY_DIR}
+)
