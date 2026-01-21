@@ -22,6 +22,8 @@ Game::Game() : window(sf::VideoMode({WINDOW_W, WINDOW_H}), "SPACE SHOOTER")
     window.setFramerateLimit(60);
     windowSize = window.getSize();
 
+    windowView = sf::View(sf::FloatRect({0, 0}, {WINDOW_W, WINDOW_H}));
+
     score = 0;
     highScore = 0;
     milestone = 0;
@@ -49,6 +51,8 @@ Game::Game() : window(sf::VideoMode({WINDOW_W, WINDOW_H}), "SPACE SHOOTER")
 void Game::run()
 {
     std::srand(static_cast<unsigned>(time(nullptr)));
+
+    window.setView(windowView);
 
     // sound effects and music
     // laser gun fire sound
@@ -237,6 +241,25 @@ void Game::run()
             if (event->is<sf::Event::Closed>())
             {
                 window.close();
+            }
+
+            if (event->is<sf::Event::Resized>()) {
+    auto size = window.getSize();
+
+    // Maintain the aspect ratio
+    float windowRatio = static_cast<float>(size.x) / static_cast<float>(size.y);
+    float viewRatio = static_cast<float>(WINDOW_W) / static_cast<float>(WINDOW_H);
+
+    if (windowRatio > viewRatio) {
+        // Window is wider than view
+        float newWidth = viewRatio * size.y;
+        windowView.setSize({newWidth, static_cast<float>(WINDOW_H)});
+    } else {
+        // Window is taller than view
+        float newHeight = size.x / viewRatio;
+        windowView.setSize({static_cast<float>(WINDOW_W), newHeight});
+    }
+                window.setView(windowView);
             }
 
             if (const auto *mb = event->getIf<sf::Event::MouseButtonPressed>())

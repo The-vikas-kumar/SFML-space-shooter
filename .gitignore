@@ -13,6 +13,7 @@ bin/
 *.a
 
 # Ignore IDE files
+sfml
 .vscode/
 *.code-workspace
 

@@ -15,6 +15,7 @@ class Game{
     private:
     sf::RenderWindow window;
     sf::Vector2u windowSize;
+    sf::View windowView;
     int score;
     int highScore;
     int milestone;
